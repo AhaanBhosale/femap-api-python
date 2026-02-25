@@ -1,5 +1,6 @@
 import pythoncom
 import pyfemap
+from pyfemap import constants
 import sys
 
 # Try making connection to Femap application
