@@ -6,8 +6,8 @@ import numpy as np
 
 def check_error(rc):
     if rc != constants.FE_OK:
-        #sys.exit("Error code: " + str(rc))
-        print("Skipping vector")
+        sys.exit("Error code: " + str(rc))
+
 
 # Try making connection to Femap application
 try:
@@ -16,11 +16,35 @@ try:
 except:
     sys.exit("Femap is not running. Please start Femap and try again.")
 
+def find_plies(ply1_id1, gap, n_vecs, osID):
+
+    # Setup a layup object
+    layup = app.feLayup
+
+    # Count the number of plies
+    nPlies = 0
+    while layup.Next() == constants.FE_OK:
+        nPlies += layup.NumberOfPlys
+
+    # Get the possible vector ids
+    ply1_ids = np.linspace(ply1_id1, ply1_id1+n_vecs-1, n_vecs, dtype=int)
+    all_vec_ids = []
+    for xi in range(nPlies):
+        ply_vec_ids = ply1_ids + gap*xi
+        all_vec_ids.append(ply_vec_ids)
+    all_vec_ids = np.array(all_vec_ids).flatten()
+
+    # Keep only the vector ids that exist in the model
+    out_ids = np.array([], dtype=int)
+    for vec_id in all_vec_ids:
+        if fr.VectorExistsV2(osID, vec_id):
+            out_ids = np.append(out_ids, vec_id)
+    return out_ids
+
 # User input
 ply1_id1 = 16000088
 n_vecs = 6
 gap = 500
-nPlies = 30
 
 # Get the active output set id in femap
 feView = app.feView
@@ -28,24 +52,16 @@ rc, viewID = app.feAppGetActiveView()
 rc = feView.Get(viewID)
 output_set_id = feView.OutputSet
 
-# Get all the required vector ids for all plies. Flatten it to a single array
-ply1_ids = np.linspace(ply1_id1, ply1_id1+n_vecs-1, n_vecs, dtype=int)
-all_vec_ids = []
-for xi in range(nPlies):
-    ply_vec_ids = ply1_ids + gap*xi
-    all_vec_ids.append(ply_vec_ids)
-all_vec_ids = np.array(all_vec_ids).flatten()
-
 # Create a femap result browing object
 fr = app.feResults
+
+# Get the number of plies in the model
+all_vec_ids = find_plies(ply1_id1, gap, n_vecs, output_set_id)
 
 # Add a column for each vector id to the result browsing object
 for vec_id in all_vec_ids:
     rc, nCol, nColIds = fr.AddColumnV2(output_set_id, vec_id, False)
     check_error(rc)
-
-# Create an envelope for the failure index across all plies
-#rc, nCol, envColID = fr.AddEnvelopeColumn(constants.FOPE_MAX)
 
 # Create a set of all elements
 fs = app.feSet
@@ -74,31 +90,6 @@ for xi in range(fr.NumberOfRows()):
     else:
         print("Element " + str(elemID) + " has zero failure index across all plies.")
 
-# Extract the data from the rbo
-#num_data_cols = fr.NumberOfColumns()
-#rc, raw_data = fr.GetRowsByID(fs.ID)
-
-# Convert to Numpy and Reshape
-#full_table = np.array(raw_data).reshape(-1, num_data_cols)
-
-# Extract the enveloped data
-#rc, entIDs, dMax = fr.GetColumn(envColID)
-
-# Get the element ids by reading a random column (here we read the first column, but it can be any column since they all have the same element ids)
-#rc, entIDs, dMax = fr.GetColumn(0)
-#check_error(rc)
-
-# Create the enveloped data by taking the max across all the columns for each element
-#dMax = np.max(full_table, axis=1)
-
-# Delete the rows with zero values
-#entIDs = np.nonzero(dMax)
-#dMax = dMax[entIDs]
-
-# Convert to list for putting back into femap
-#dMax = dMax.tolist()
-#entIDs = entIDs[0].tolist()
-
 # Clear the result browsing object and create a new output vector in femap
 fr.clear()
 newVecID = fr.NonExistingUserVectorV2(output_set_id)
@@ -112,6 +103,8 @@ check_error(rc)
 rc = fr.Save()
 check_error(rc)
 
+# Print to femap console
+app.feAppMessage(0, "Succesfully created Max Failure Index output.")
 
 
 
