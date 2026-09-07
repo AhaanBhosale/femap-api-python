@@ -1,0 +1,8 @@
+# Requirements for femap-api-python
+# NOTE: `pyfemap` is usually provided by the Femap application/SDK and may not be available on PyPI.
+# If installation of `pyfemap` via pip fails, remove it from this file and use the Femap SDK installer.
+numpy>=1.24,<2
+matplotlib>=3.7
+pywin32>=305
+# Optional: pyfemap is included here for completeness but may not be installable via pip
+pyfemap
