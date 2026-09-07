@@ -85,15 +85,57 @@ moments_sorted = np.array(moments)[sorted_indices]
 # Print status to Femap message pane
 app.feAppMessage(0, f"Successfully extracted Plane 1 Moments for {len(x_coords)} beam elements.")
 
-# 7. Plot the Moment Diagram
-plt.figure(figsize=(9, 5))
-plt.plot(x_sorted, moments_sorted, marker='o', linestyle='-', color='#1f77b4', linewidth=2, label="Plane 1 End A Moment")
-plt.axhline(0, color='black', linestyle='--', linewidth=0.8, alpha=0.7)
+# 6. Sort by X-coordinate
+sorted_indices = np.argsort(x_coords)
+x_sorted = np.array(x_coords)[sorted_indices]
+moments_sorted = np.array(moments)[sorted_indices]
 
-plt.title(f"Beam Plane 1 End A Moment (Output Set ID: {output_set_id})", fontsize=12, fontweight='bold')
-plt.xlabel("X Coordinate [Model Units]", fontsize=11)
-plt.ylabel("Bending Moment Plane 1 [Force × Length]", fontsize=11)
-plt.grid(True, linestyle=':', alpha=0.6)
-plt.legend()
+app.feAppMessage(0, f"Successfully extracted Plane 1 Moments for {len(x_coords)} beam elements.")
+
+# 7. Prompt user for target X-coordinates to label
+print(f"\nX-coordinate range available: [{x_sorted.min():.3f}, {x_sorted.max():.3f}]")
+user_input = input("Enter X-coordinate(s) to label (comma-separated, e.g., '10.5, 25.0'): ").strip()
+
+target_indices = []
+if user_input:
+    for raw_val in user_input.split(','):
+        try:
+            target_x = float(raw_val.strip())
+            # Find the index of the closest available x-coordinate
+            nearest_idx = int(np.abs(x_sorted - target_x).argmin())
+            target_indices.append(nearest_idx)
+        except ValueError:
+            print(f"Skipping invalid input: '{raw_val.strip()}'")
+
+# 8. Plot the Moment Diagram with Datatips
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.plot(x_sorted, moments_sorted, marker='o', markersize=4, linestyle='-', color='#1f77b4', linewidth=2, label="Plane 1 End A Moment")
+ax.axhline(0, color='black', linestyle='--', linewidth=0.8, alpha=0.7)
+
+# Add datatips for unique nearest matches
+for idx in set(target_indices):
+    pt_x = x_sorted[idx]
+    pt_m = moments_sorted[idx]
+    
+    # Highlight the nearest node point
+    ax.scatter(pt_x, pt_m, color='#d62728', s=60, zorder=5)
+    
+    # Add annotated datatip box
+    label_text = f"X: {pt_x:.2f}\nM: {pt_m:.2e}"
+    ax.annotate(
+        label_text,
+        xy=(pt_x, pt_m),
+        xytext=(0, 25),
+        textcoords="offset points",
+        ha='center',
+        fontsize=9,
+        bbox=dict(boxstyle="round,pad=0.3", fc="#fffae6", ec="#d62728", lw=1.2),
+        arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0", color="#d62728", lw=1.2)
+    )
+ax.set_title(f"Beam Plane 1 End A Moment (Output Set ID: {output_set_id})", fontsize=12, fontweight='bold')
+ax.set_xlabel("X Coordinate [Model Units]", fontsize=11)
+ax.set_ylabel("Bending Moment Plane 1 [Force × Length]", fontsize=11)
+ax.grid(True, linestyle=':', alpha=0.6)
+ax.legend()
 plt.tight_layout()
 plt.show()
