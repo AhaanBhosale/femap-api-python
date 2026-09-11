@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run create_model/main.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/create_model/main.py",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            }
+        }
+    ]
+}
