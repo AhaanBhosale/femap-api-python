@@ -141,12 +141,6 @@ rc = nset_root.Select(constants.FT_NODE, True, "Select Nodes on the root")
 if rc != constants.FE_OK or nset_root.Count() == 0:
     sys.exit("No nodes selected or selection was cancelled.")
 
-nset_tip = app.feSet
-rc = nset_tip.Select(constants.FT_NODE, True, "Select Nodes on the tip")
-check_error(rc)
-if nset_tip.Count() == 0:
-    sys.exit("No nodes selected or selection was cancelled.")
-
 # Create a set of all the elements and nodes
 elset_all = app.feSet
 rc = elset_all.AddAll(constants.FT_ELEM)
