@@ -13,6 +13,7 @@ def compute_centroid_distances(nodes_xyz, elements, edge_node_indices):
     edge_node_indices: 1D array-like of boundary source node IDs (1-based from FEMAP)
     """
     num_nodes = len(nodes_xyz)
+    num_nodes_boundary = len(edge_node_indices)
     
     # Convert 1-based FEA IDs to 0-based Python indices
     elements = np.asarray(elements) - 1
@@ -34,15 +35,28 @@ def compute_centroid_distances(nodes_xyz, elements, edge_node_indices):
     dists = np.linalg.norm(nodes_xyz[u_uniq] - nodes_xyz[v_uniq], axis=1)
     
     # Graph construction
-    row_idx = np.concatenate([u_uniq, v_uniq])
-    col_idx = np.concatenate([v_uniq, u_uniq])
-    edge_weights = np.concatenate([dists, dists])
-    
-    graph = csr_matrix((edge_weights, (row_idx, col_idx)), shape=(num_nodes, num_nodes))
+    mesh_rows = np.concatenate([u_uniq, v_uniq])
+    mesh_cols = np.concatenate([v_uniq, u_uniq])
+    mesh_weights = np.concatenate([dists, dists])
 
-    # Multi-source Dijkstra
-    dist_matrix = csgraph.dijkstra(csgraph=graph, directed=False, indices=edge_node_indices)
-    node_distances = np.min(dist_matrix, axis=0)
+    # Create a single "virtual node" to represent the boundary edge.
+    # This allows the dijkstra algorithm to be used just once
+    vir_node_idx = num_nodes # Give it the last index
+
+    # Add the virtual node to the network. The virtual node has 0 distance to all the boundary nodes
+    v_rows = np.full(num_nodes_boundary, vir_node_idx, dtype=int)
+    v_cols = edge_node_indices
+    v_weights = np.zeros(num_nodes_boundary, dtype=float)
+    row_idx = np.concatenate([mesh_rows, v_rows, v_cols])
+    col_idx = np.concatenate([mesh_cols, v_cols, v_rows])
+    edge_weights = np.concatenate([mesh_weights, v_weights, v_weights])
+
+    # Build a sparse matrix of distances. Row idx is from node, and col idx is to node
+    graph = csr_matrix((edge_weights, (row_idx, col_idx)), shape=(num_nodes+1, num_nodes+1))
+
+    # Single source Dijkstra run
+    dist_vector = csgraph.dijkstra(csgraph = graph, directed=False, indices=vir_node_idx)
+    node_distances = dist_vector[:num_nodes]
 
     # Vectorized centroid distances
     elem_coords = nodes_xyz[elements]
@@ -52,7 +66,6 @@ def compute_centroid_distances(nodes_xyz, elements, edge_node_indices):
     dists_via_corners = node_distances[elements] + corner_to_centroid
     
     return np.min(dists_via_corners, axis=1)
-
 
 def get_elem_dist_from_edge(app, elset, nset, nset_edge):
 
