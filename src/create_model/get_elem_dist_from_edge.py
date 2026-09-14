@@ -14,16 +14,24 @@ def compute_centroid_distances(nodes_xyz, elements, edge_node_indices):
     elements = np.asarray(elements) - 1
     edge_node_indices = np.asarray(edge_node_indices) - 1
     
-    # 1. Vectorized edge extraction
+    # Vectorized edge extraction. 
+    # Here, corresponding edges of u and v describe the element edge
     u = elements.flatten()
     v = np.roll(elements, shift=-1, axis=1).flatten()
-    
+
+    # Keep only the unique u,v pairings, since the pairing can occur
+    # along elements with shared edges
+    uv = np.sort(np.column_stack([u,v]), axis= 1)
+    uniq_uv = np.unique(uv, axis=0)
+    u_uniq = uniq_uv[:, 0]
+    v_uniq = uniq_uv[:, 1]
+
     # Euclidean edge lengths across all elements
-    dists = np.linalg.norm(nodes_xyz[u] - nodes_xyz[v], axis=1)
+    dists = np.linalg.norm(nodes_xyz[u_uniq] - nodes_xyz[v_uniq], axis=1)
     
     # Graph construction
-    row_idx = np.concatenate([u, v])
-    col_idx = np.concatenate([v, u])
+    row_idx = np.concatenate([u_uniq, v_uniq])
+    col_idx = np.concatenate([v_uniq, u_uniq])
     edge_weights = np.concatenate([dists, dists])
     
     graph = csr_matrix((edge_weights, (row_idx, col_idx)), shape=(num_nodes, num_nodes))

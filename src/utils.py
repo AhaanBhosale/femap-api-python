@@ -56,7 +56,7 @@ def get_nodal_ids(app, node_set):
 
         rc = fe_node.Get(node_set.Next())
         if rc == -1:  # FE_OK
-            ids[xi-1] = fe_node.ID
+            ids[xi] = fe_node.ID
 
     # return the ids
     return ids
@@ -77,7 +77,7 @@ def get_nodal_coords(app, node_set):
     for xi in range(len(node_set)):
         rc = fe_node.Get(node_set.Next())
         if rc == -1:  # FE_OK
-            coords[xi-1] = [fe_node.x, fe_node.y, fe_node.z]
+            coords[xi] = [fe_node.x, fe_node.y, fe_node.z]
 
     # return the ids
     return coords

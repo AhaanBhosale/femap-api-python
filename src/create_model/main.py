@@ -47,6 +47,7 @@ def create_property_per_elem(app, layup_list, thickness_list):
 
     # Iterate through each layup
     prev_layups = []
+    prev_prop_idx = []
     out = np.empty(shape=(len(layup_list,)), dtype=np.int64)
     for xi in range(len(layup_list)):
 
@@ -62,7 +63,7 @@ def create_property_per_elem(app, layup_list, thickness_list):
         # Check if existing layup is already created. If so, use the existing layup id
         match_idx = next((idx for idx, arr in enumerate(prev_layups) if np.array_equal(curr_layup, arr)), None)
         if match_idx:
-            out[xi] = out[match_idx]
+            out[xi] = prev_prop_idx[match_idx]
             continue
 
         # Create the layup
@@ -89,6 +90,7 @@ def create_property_per_elem(app, layup_list, thickness_list):
         # Save the layup ids and update the prev layup list
         out[xi] = prop_id
         prev_layups.append(curr_layup)
+        prev_prop_idx.append(prop_id)
 
     return out
 
