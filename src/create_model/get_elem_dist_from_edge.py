@@ -1,5 +1,9 @@
+import os
+import sys
 import numpy as np
 from scipy.sparse import csgraph, csr_matrix
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import get_connect_matrix, get_nodal_coords, get_nodal_ids
 
 def compute_centroid_distances(nodes_xyz, elements, edge_node_indices):

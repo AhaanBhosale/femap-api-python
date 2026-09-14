@@ -150,8 +150,11 @@ rc = nset_all.AddAll(constants.FT_NODE)
 check_error(rc)
 
 # Read the excel file with the layup definition
-#file = filedialog.askopenfilename(title="Select the layup definition Excel file", filetypes=[("Excel files", "*.xlsx *.xls")])
-file = "C:\\Users\\AhaanBhosalePontisEn\\Documents\\Pontis\\Pontis INTERNAL - Documents\\Engineering Tools en Technology\\Flow Simulation - RTMWorx\\Sprint Work\\Vestas V236 Root Prefab\\Geometry and Layup\\Layup Input LW Root Prefab.xlsx"
+root = tk.Tk()
+root.withdraw()
+root.attributes('-topmost', True)
+file = filedialog.askopenfilename(parent=root, title="Select the layup definition Excel file", filetypes=[("Excel files", "*.xlsx *.xls")])
+root.destroy()
 if not file:
     sys.exit("No file selected.")
 layup_df = pd.read_excel(file)
