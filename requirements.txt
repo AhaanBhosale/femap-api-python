@@ -3,6 +3,7 @@
 # If installation of `pyfemap` via pip fails, remove it from this file and use the Femap SDK installer.
 numpy>=1.24,<2
 matplotlib>=3.7
+pandas>=2
+scipy>=1.10
 pywin32>=305
-# Optional: pyfemap is included here for completeness but may not be installable via pip
-pyfemap
+
