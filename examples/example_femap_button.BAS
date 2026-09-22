@@ -1,41 +1,38 @@
 
  ' -----------------------------------------------------------------------------
- ' Help: Creating a Femap button for a Python script
+ ' Help: Creating a Femap button for the create-model workflow
  '
- ' This example creates a Femap button named after this BAS file. Place the
- ' BAS file in a subfolder within Femap's API directory, for example:
+ ' This example creates a Femap button named after this BAS file and runs
+ ' src\create_model\main.py as a Python module. Place the BAS file in a
+ ' subfolder within Femap's API directory, for example:
  '   C:\Program Files\Siemens\Femap\api\python\example_femap_button.BAS
  '
- ' Before running the button, update these two values below:
- '   1. pythonExe  - the full path to python.exe, or "python" when Python is
- '                   available on PATH.
- '   2. scriptPath - the full path to the Python script to run.
+ ' Setup steps:
+ '   1. Confirm that run_create_model.bat is in the repository root.
+ '   2. Update the Python executable path in run_create_model.bat if needed.
+ '   3. Update launcherPath below to the full path to that batch file.
+ '   4. Copy this BAS file into Femap's API subfolder and run the button.
  '
- ' Keep the paths in quotes when they contain spaces. The command is built with
- ' quotes automatically, so the paths should be entered without extra quotes.
- ' The button starts the Python script while Femap remains open. Any output is
- ' shown in the Python console window.
+ ' The batch file changes to the repository root before running:
+ '   python -m src.create_model.main
+ ' This package-style command is required because main.py uses relative imports.
+ ' The batch file pauses when complete so errors and console output remain visible.
  ' -----------------------------------------------------------------------------
 
 Sub Main
     Dim App As femap.model
     Set App = feFemap()
 
-    ' 1. Define the path to your Python executable (python.exe)
-    ' If Python is in your PATH, you can just use "python"
-    Dim pythonExe As String
-    pythonExe = "C:\Users\AhaanBhosalePontisEn\Documents\Repositories\femap-api-python\venv\Scripts\python.exe"
+    ' 1. Define the path to the batch launcher in the repository root
+    Dim launcherPath As String
+    launcherPath = "C:\Users\AhaanBhosalePontisEn\Documents\Repositories\femap-api-python\run_create_model.bat"
 
-    ' 2. Define the path to your Python script
-    Dim scriptPath As String
-    scriptPath = "C:\Users\AhaanBhosalePontisEn\Documents\Repositories\femap-api-python\src\composites\create_oop_shear_failure_index.py"
-
-    ' 3. Construct the command
-    ' We use double quotes around paths in case they contain spaces
+    ' 2. Construct the command
+    ' The quotes allow the launcher path to contain spaces.
     Dim command As String
-    command = """" & pythonExe & """ """ & scriptPath & """"
+    command = "cmd.exe /c " & """" & launcherPath & """"
 
-    ' 4. Run the script
+    ' 3. Run the launcher
     ' vbNormalFocus ensures you see the console window if it prints anything
     On Error Resume Next
     Shell(command, vbNormalFocus)
