@@ -1,3 +1,17 @@
+"""Build and assign composite properties in the active Femap model.
+
+Help:
+    Run this script while Femap is open with a model loaded. Select the
+    leading edge, trailing edge, and root node sets when prompted, then choose
+    an Excel layup-definition file. The script creates the required materials,
+    calculates each element's distance from the selected boundaries, creates
+    composite layup properties, and assigns those properties to the elements.
+
+    The Excel file must contain the material, thickness, and boundary-offset
+    columns expected by the workflow. Install the project dependencies before
+    running the script.
+"""
+
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,10 +24,32 @@ from tkinter import filedialog
 from get_elem_dist_from_edge import get_elem_dist_from_edge
 
 def check_error(rc):
+    """Exit the script when a Femap API call does not return ``FE_OK``.
+
+    Parameters
+    ----------
+    rc : int
+        Return code from a Femap API operation.
+    """
     if rc != constants.FE_OK:
         sys.exit(f"Femap API Error code: {rc}")
 
 def create_mats_from_df(app, df):
+    """Create one orthotropic material for each unique material name.
+
+    Parameters
+    ----------
+    app : femap.model
+        Connected Femap application object.
+    df : pandas.DataFrame
+        Layup definition table containing a ``Material`` column.
+
+    Returns
+    -------
+    dict
+        Mapping from material names in ``df`` to the newly created Femap
+        material IDs.
+    """
 
     # Extract all the unique materials from the dataframe
     df_uniq = df.drop_duplicates(subset="Material", keep="first")
@@ -44,6 +80,23 @@ def create_mats_from_df(app, df):
     return out
 
 def create_property_per_elem(app, layup_list, thickness_list):
+    """Create or reuse a Femap composite property for each element layup.
+
+    Parameters
+    ----------
+    app : femap.model
+        Connected Femap application object.
+    layup_list : sequence of sequence of int
+        Material IDs for each element, ordered through the element layup.
+        Empty layups receive a property ID of ``-1``.
+    thickness_list : sequence of sequence of float
+        Ply thicknesses corresponding to ``layup_list``.
+
+    Returns
+    -------
+    numpy.ndarray
+        Property ID for each element, or ``-1`` when no layup is assigned.
+    """
 
     # Iterate through each layup
     prev_layups = []
@@ -95,6 +148,23 @@ def create_property_per_elem(app, layup_list, thickness_list):
     return out
 
 def assign_property_to_element(app, elset, prop_ids):
+    """Assign the supplied Femap property IDs to the elements in a set.
+
+    Parameters
+    ----------
+    app : femap.model
+        Connected Femap application object.
+    elset : femap.feSet
+        Element set whose elements will receive properties. Elements are read
+        in the set's iteration order.
+    prop_ids : sequence of int
+        Property ID for each element in ``elset``. Negative IDs are skipped.
+
+    Notes
+    -----
+    The function resets the module-level ``elset_all`` set before iterating,
+    so the supplied set is expected to be that active element set.
+    """
 
     # Rest the pointer for the set
     elset_all.Reset()

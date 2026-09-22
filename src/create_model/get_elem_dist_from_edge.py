@@ -1,3 +1,11 @@
+"""Utilities for calculating element distances from a Femap model edge.
+
+The module provides a NumPy/SciPy calculation for element-centroid distances
+and a wrapper that retrieves the required node and element data from Femap.
+Femap node IDs are expected to use one-based numbering; they are converted to
+zero-based indices internally for array and sparse-graph operations.
+"""
+
 import os
 import sys
 import numpy as np
@@ -7,10 +15,30 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import get_connect_matrix, get_nodal_coords, get_nodal_ids
 
 def compute_centroid_distances(nodes_xyz, elements, edge_node_indices):
-    """
-    nodes_xyz: (N_nodes, 3) float array of coordinates
-    elements: (N_elements, M) int array of corner node IDs (1-based from FEMAP)
-    edge_node_indices: 1D array-like of boundary source node IDs (1-based from FEMAP)
+    """Calculate each element centroid's shortest distance from a node edge.
+
+    Parameters
+    ----------
+    nodes_xyz : array-like, shape (N_nodes, 3)
+        Cartesian coordinates for the model nodes. Rows are indexed by the
+        corresponding zero-based position in the element connectivity data.
+    elements : array-like, shape (N_elements, M)
+        Element corner node IDs using Femap's one-based numbering.
+    edge_node_indices : array-like, shape (N_edge_nodes,)
+        Node IDs defining the boundary edge, also using Femap's one-based
+        numbering. These nodes are treated as zero-distance source nodes.
+
+    Returns
+    -------
+    numpy.ndarray, shape (N_elements,)
+        Shortest distance from each element centroid to the boundary edge,
+        measured along the element connectivity graph and through the element
+        corners.
+
+    Notes
+    -----
+    The function converts Femap's one-based node IDs to zero-based NumPy
+    indices internally and uses a sparse Dijkstra search for the mesh distance.
     """
     num_nodes = len(nodes_xyz)
     num_nodes_boundary = len(edge_node_indices)
@@ -68,6 +96,30 @@ def compute_centroid_distances(nodes_xyz, elements, edge_node_indices):
     return np.min(dists_via_corners, axis=1)
 
 def get_elem_dist_from_edge(app, elset, nset, nset_edge):
+    """Return element-centroid distances from a Femap node-set edge.
+
+    Parameters
+    ----------
+    app : femap.model
+        Connected Femap application object.
+    elset : int
+        Femap ID of the element set whose distances should be calculated.
+    nset : int
+        Femap ID of the node set used to retrieve model coordinates.
+    nset_edge : int
+        Femap ID of the node set defining the boundary edge.
+
+    Returns
+    -------
+    numpy.ndarray
+        One distance value for each element in ``elset``, in the same order as
+        returned by the element connectivity matrix.
+
+    Notes
+    -----
+    The required Femap sets must exist and contain compatible element or node
+    data before this function is called.
+    """
 
     # Get nodal ids of the edge
     edge_ids = get_nodal_ids(app, nset_edge)

@@ -1,3 +1,26 @@
+"""Create a bending moment diagram for selected Femap beam/bar elements.
+
+Help
+----
+Prerequisites:
+        - Femap must be open with a model loaded.
+        - The active view should reference an output set containing beam moment
+            results. If no output set is active, the first available output set is
+            used.
+        - Python dependencies from requirements.txt must be installed.
+
+Usage:
+        1. Run this script while Femap is open.
+        2. Select the beam or bar elements to include in the diagram.
+        3. Enter optional X-coordinates, separated by commas, to label the nearest
+             plotted points.
+        4. Review the generated Plane 1 End A moment diagram in the plot window.
+
+The script reads the Plane 1 End A moment result (vector 3014), sorts selected
+elements by the X-coordinate of their End A node, and plots the resulting
+moment diagram with optional annotations.
+"""
+
 import sys
 import numpy as np
 import matplotlib.pyplot as plt

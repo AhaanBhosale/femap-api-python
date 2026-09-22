@@ -1,3 +1,15 @@
+"""Create an out-of-plane shear stress result in the active Femap model.
+
+Help:
+    Run this script while Femap is open with a composite model and an active
+    output set containing the ply stress results. The script reads the S23 and
+    S13 stress vectors for each ply and element, calculates their RMS shear
+    value, and saves the maximum value for each element as a new user output
+    vector named ``RMS OOP Shear Stress``.
+
+    Install the project dependencies before running the script.
+"""
+
 import pythoncom
 import pyfemap
 from pyfemap import constants

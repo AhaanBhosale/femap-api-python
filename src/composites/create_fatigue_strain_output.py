@@ -1,3 +1,14 @@
+"""Create composite strain output vectors in the active Femap model.
+
+Help:
+    Run this script while Femap is open with a model loaded. Enter the output
+    set IDs to process when prompted. The script reads the available ply strain
+    results for all elements, calculates strain amplitude and mean strain, and
+    saves both results in a new output set named ``Fatigue Strain Results``.
+
+    Install the project dependencies before running the script.
+"""
+
 import pythoncom
 import pyfemap
 from pyfemap import constants

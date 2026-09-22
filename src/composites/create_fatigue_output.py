@@ -1,8 +1,16 @@
+"""Create composite fatigue results in the active Femap model.
+
+Help:
+    Run this script while Femap is open with a model loaded. The script prompts
+    for the output sets and fatigue parameters, calculates fatigue life and
+    damage for the model elements, and stores the results in a new Femap
+    output set named ``Fatigue Strain Results``.
+
+    Ensure the project dependencies are installed before running the script.
+"""
+
 from functions.utils import connect_to_femap, find_plies, create_output_vector
 from functions.errors import check_error
-import tkinter as tk
-from tkinter import simpledialog
-import sys
 from pyfemap import constants
 import numpy as np
 from functions.ui_utils import get_user_inputs
