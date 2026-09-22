@@ -82,7 +82,7 @@ This should print a success message confirming the connection to Femap.
 ### Main model setup workflow
 
 ```powershell
-python .\src\create_model\main.py
+python -m src.create_model.main
 ```
 
 The script will:

@@ -21,7 +21,7 @@ from pyfemap import constants
 import pandas as pd
 import tkinter as tk
 from tkinter import filedialog
-from get_elem_dist_from_edge import get_elem_dist_from_edge
+from .get_elem_dist_from_edge import get_elem_dist_from_edge
 
 def check_error(rc):
     """Exit the script when a Femap API call does not return ``FE_OK``.
